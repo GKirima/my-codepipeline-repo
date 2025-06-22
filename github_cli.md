@@ -1,87 +1,88 @@
 # download the github cli using this link
-https://github.com/cli/cli/releases/tag/v2.74.2
-# after installation is complete open the powershell or gitbash ternmial on your local machine
-# pass the follwing commands
-gh --version
-# If it prints the version (e.g., gh version 2.42.1), then it’s properly installed and on your PATH.
-Run GitHub CLI
-# Once installed and on PATH, just run:
-gh
+*https://github.com/cli/cli/releases/tag/v2.74.2*<br>
 
-to see help and commands.
-<!-- Your GitHub CLI (gh) is correctly installed and accessible in Git Bash.
+- after installation is complete open the powershell or gitbash ternmial on your local machine<br>
+## pass the follwing commands
+*gh --version*<br>
+- If it prints the version (e.g., gh version 2.42.1), then it’s properly installed and on your PATH.<br>
+Run GitHub CLI<br>
+# Once installed and on PATH, just run:<br>
+*gh*
 
-You’re all set to start using it to:
+to see help and commands.<br>
+ Your GitHub CLI (gh) is correctly installed and accessible in Git Bash.<br>
 
-Authenticate (gh auth login)
+You’re all set to start using it to:<br>
 
-Create repositories
+Authenticate (*gh auth login*)<br>
 
-Clone repos
+Create repositories<br>
 
-Manage issues & pull requests -->
+Clone repos<br>
 
-# run this command to login in to github using cli
-gh auth login
+Manage issues & pull requests<br>
 
-# follow and respond to prompt by the cli; example:
+### run this command to login in to github using cli<br>
+*gh auth login*<br>
 
-<!-- $ gh auth login
-? Where do you use GitHub? GitHub.com
-? What is your preferred protocol for Git operations on this host? HTTPS
-? Authenticate Git with your GitHub credentials? Yes
-? How would you like to authenticate GitHub CLI? Login with a web browser
+### follow and respond to prompt by the cli; example:<br>
 
-! First copy your one-time code: 4741-4571
-Press Enter to open https://github.com/login/device in your browser... 
+ $ gh auth login<br>
+? Where do you use GitHub? *GitHub.com*<br>
+? What is your preferred protocol for Git operations on this host? *HTTPS*<br>
+? Authenticate Git with your GitHub credentials? *Yes*<br>
+? How would you like to authenticate GitHub CLI? *Login with a web browser*<br>
 
-✓ Authentication complete.
-- gh config set -h github.com git_protocol https
-✓ Configured git protocol
-✓ Logged in as abcd -->
+! First copy your one-time code: *1234-5678*<br>
+Press *Enter* to open *https://github.com/login/device* in your browser...<br> 
 
-
-# 2. Create a New GitHub Repository
-gh repo create my-new-repo --public --source=. --remote=origin --push
-
-This:
-
-Creates a new repo on GitHub
-
-Connects your local folder to it
-
-Pushes your code
-
-# If you're starting from scratch:
-<!-- mkdir my-new-repo 
-cd my-new-repo
-git init
-echo "# Hello GitHub CLI" > README.md
-git add .
-git commit -m "Initial commit"
-gh repo create my-new-repo --public --source=. --remote=origin --push
-
-This:
-
-Initializes Git
-
-Creates a new GitHub repo
-
-Pushes your code -->
-
-# Clone an Existing Repo
-gh repo clone your-username/repo-name
-cd repo-name
+✓ Authentication complete.<br>
+- gh config set -h github.com git_protocol https<br>
+✓ Configured git protocol<br>
+✓ Logged in as *abcd*<br>
 
 
-# Check Authentication Status
-gh auth status
+# 2. Create a New GitHub Repository<br>
+*gh repo create my-new-repo --public --source=. --remote=origin --push*<br>
 
-# View Repo in Browser
-gh repo view --web
+This:<br>
 
-# Make a Change and Push
-echo "More features coming soon." >> README.md
-git add README.md
-git commit -m "Updated README"
-git push
+- Creates a new repo on GitHub<br>
+
+- Connects your local folder to it<br>
+
+- Pushes your code<br>
+
+# If you're starting from scratch:<br>
+ *mkdir my-new-repo*<br>
+*cd my-new-repo*<br>
+*git init*<br>
+*echo "# Hello GitHub CLI" > README.md*<br>
+*git add .*<br>
+*git commit -m "Initial commit"*<br>
+*gh repo create my-new-repo --public --source=. --remote=origin --push*<br>
+
+This:<br>
+
+- Initializes Git<br>
+
+- Creates a new GitHub repo<br>
+
+- Pushes your code<br>
+
+### Clone an Existing Repo
+*gh repo clone your-username/repo-name*<br>
+*cd repo-name*<br>
+
+
+### Check Authentication Status
+*gh auth status*<br>
+
+### View Repo in Browser<br>
+*gh repo view --web*<br>
+
+### Make a Change and Push<br>
+*echo "More features coming soon." >> README.md*<br>
+*git add README.md*<br>
+*git commit -m "Updated README"*<br>
+*git push*<br>
