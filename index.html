@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Automated EC2 Deployment Pipeline Using AWS CodePipeline and GitHub</title>
+  <header>
+ <!--<h1>Automated EC2 Deployment Pipeline Using AWS CodePipeline and GitHub</h1>-->
+</header>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    header, footer {
+      background-color: #003366;
+      color: white;
+      padding: 20px 0;
+      text-align: center;
+    }
+    header {
+      padding: 20px;
+      text-align: center;
+    }
+    header h1 {
+      color: white;
+      margin: 0;
+    }
+    main {
+      max-width: 960px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h1, h2, h3, h4 {
+      color: #003366;
+    }
+    code, pre {
+      background-color: #f4f4f4;
+      padding: 5px;
+      display: block;
+      margin-bottom: 10px;
+      border-left: 4px solid #007acc;
+    }
+    img.placeholder {
+      display: block;
+      width: 100%;
+      height: 200px;
+      background-color: #ccc;
+      margin: 20px 0;
+      text-align: center;
+      line-height: 200px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Automated EC2 Deployment Pipeline Using AWS CodePipeline and GitHub</h1>
+  </header>
+  <main>
+    <section>
+      <p>This project outlines an automated deployment pipeline using AWS CodePipeline, CodeDeploy, and GitHub to deliver application scripts to Amazon EC2 instances with minimal manual intervention.</p>
+      <ul>
+        <li>The GitHub repository contains two critical files:
+          <ul>
+            <li><strong>appspec.yml</strong> – defines lifecycle hooks and the target deployment directory.</li>
+            <li><strong>script.sh</strong> – handles post-deployment tasks such as logging and report generation.</li>
+          </ul>
+        </li>
+        <li>When code is pushed to the repository:
+          <ul>
+            <li>CodePipeline is triggered automatically.</li>
+            <li>It retrieves the latest code and passes it to CodeDeploy, skipping the build stage.</li>
+          </ul>
+        </li>
+        <li>The deployment artifact:
+          <ul>
+            <li>Is temporarily stored in an S3 bucket managed by CodePipeline.</li>
+            <li>Is sent to two Amazon Linux 2 EC2 instances.</li>
+          </ul>
+        </li>
+        <li>The EC2 instances are configured with:
+          <ul>
+            <li>IAM roles that include AmazonSSMManagedInstanceCore for secure Systems Manager access.</li>
+            <li>Inline policies that grant s3:GetObject access to retrieve artifacts.</li>
+          </ul>
+        </li>
+        <li>CodeDeploy:
+          <ul>
+            <li>Locates the EC2 targets and deploys files to <code>/home/ec2-user/testhelloworld</code>.</li>
+            <li>Executes <code>script.sh</code> using the AfterInstall hook.</li>
+          </ul>
+        </li>
+        <li>From the user’s perspective, the process is seamless:
+          <ul>
+            <li>A developer pushes code to GitHub.</li>
+            <li>Within minutes, the latest changes are deployed securely and automatically to production.</li>
+          </ul>
+        </li>
+      </ul>
+      <p>This architecture enables secure, auditable, and repeatable deployments using AWS-native tools and promotes best practices in continuous delivery.</p>
+      <div class="placeholder">[Architecture Diagram Placeholder]</div>
+    </section>
+
+    <section>
+      <h2>STEP ONE: Create Amazon EC2 Linux Instances</h2>
+      <h3>A. To create an instance role</h3>
+      <ol>
+        <li>Open the IAM console at <a href="https://console.aws.amazon.com/iam/">https://console.aws.amazon.com/iam/</a>.</li>
+        <li>From the console dashboard, choose Roles.</li>
+        <li>Choose Create role.</li>
+        <li>Select AWS service > EC2 > Next: Permissions.</li>
+        <li>Search and select policies:
+          <ul>
+            <li>AWSSystemsManagerDefaultEC2InstanceManagementRoleeployAction</li>
+            <li>AmazonSSMManagedInstanceCore</li>
+          </ul>
+        </li>
+        <li>Choose Next: Tags, then Next: Review.</li>
+        <li>Name it <strong>EC2InstanceRole</strong>.</li>
+        <li>Choose Create role.</li>
+      </ol>
+      <h3>B. To launch instances</h3>
+      <ol>
+        <li>Open the EC2 console: <a href="https://console.aws.amazon.com/ec2/">https://console.aws.amazon.com/ec2/</a></li>
+        <li>Choose Instances > Launch instances.</li>
+        <li>Set Name to <strong>MyInstances</strong>.</li>
+        <li>Select Amazon Linux 2 AMI (Free tier eligible).</li>
+        <li>Choose <strong>t2.micro</strong> instance type.</li>
+        <li>Select or create a key pair.</li>
+        <li>Enable network settings.</li>
+        <li>In Advanced details, choose the IAM role <strong>EC2InstanceRole</strong>.</li>
+        <li>Set Number of instances to <strong>2</strong>.</li>
+        <li>Click Launch instance.</li>
+      </ol>
+      <div class="placeholder">[EC2 Console Screenshot Placeholder]</div>
+    </section>
+
+    <section>
+      <h2>STEP TWO: Create and Add a Script File to Your Repository</h2>
+      <p>In your GitHub repo, create <code>script.sh</code> for post-deployment tasks:</p>
+      <pre><code>touch script.sh
+chmod +x script.sh
+
+#!/bin/bash
+echo "Running post-deployment tasks..."
+systemctl restart myapp.service
+npm install
+python3 manage.py migrate
+echo "Deployment complete!" &gt;&gt; /var/log/deploy.log</code></pre>
+      <p>Save and commit:</p>
+      <pre><code>git add script.sh
+git commit -m "Add post-deployment script"
+git push origin main</code></pre>
+      <p>If using AWS CodeDeploy, add <code>appspec.yml</code>:</p>
+      <pre><code>version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /home/ec2-user/myapp
+
+hooks:
+  AfterInstall:
+    - location: script.sh
+      timeout: 300
+      runas: ec2-user</code></pre>
+      <p>To create:</p>
+      <pre><code>cd path/to/your-repo
+touch appspec.yml
+code appspec.yml</code></pre>
+      <p>Commit and push:</p>
+      <pre><code>git add appspec.yml
+git commit -m "Add appspec.yml for AWS CodeDeploy"
+git push origin main</code></pre>
+    </section>
+
+    <section>
+      <h2>STEP THREE: Add Artifact Bucket Permissions</h2>
+      <ol>
+        <li>Go to your pipeline in CodePipeline console > Settings > Note the S3 bucket ARN.</li>
+        <li>Go to IAM console > Roles > select <strong>EC2InstanceRole</strong>.</li>
+        <li>Under Permissions tab, click <strong>Add inline policy</strong>.</li>
+        <li>Add this policy, replace <em>*BucketName*</em>:</li>
+      </ol>
+      <pre><code>{
+  "Effect": "Allow",
+  "Principal": "*",
+  "Action": "s3:GetObject",
+  "Resource": "arn:aws:s3:::*BucketName*"
+}</code></pre>
+    </section>
+
+    <section>
+      <h2>STEP FOUR: Creating Your Pipeline</h2>
+      <ol>
+        <li>Go to <a href="https://console.aws.amazon.com/codepipeline/">CodePipeline console</a> and click Create pipeline.</li>
+        <li>Name: <strong>MyPipeline</strong>. Choose custom pipeline. Use existing service role.</li>
+        <li>Source stage: GitHub via GitHub App > Choose repo > Next.</li>
+        <li>Skip build stage.</li>
+        <li>Deploy stage:
+          <ul>
+            <li>Target directory: <code>/home/ec2-user/testhelloworld</code></li>
+            <li>PostScript path: <code>test/script.sh</code></li>
+          </ul>
+        </li>
+        <li>Review and click Create pipeline.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>STEP FIVE: Test Your Pipeline</h2>
+      <ol>
+        <li>Make a change in GitHub and push it.</li>
+        <li>Open your pipeline in CodePipeline.</li>
+        <li>Watch pipeline run through the stages.</li>
+        <li>Deployment occurs automatically to EC2 instances.</li>
+        <li>Check logs if errors occur (e.g., "No such file").</li>
+      </ol>
+      <div class="placeholder">[Pipeline Execution Screenshot Placeholder]</div>
+    </section>
+  </main>
+  <footer>
+    <p>&copy; 2025 Automated EC2 Deployment Guide. All rights reserved.</p>
+  </footer>
+</body>
+</html>
+<script>
+  // Placeholder for future JavaScript functionality
+  console.log("Automated EC2 Deployment Pipeline page loaded.");
